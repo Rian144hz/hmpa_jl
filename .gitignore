@@ -1,0 +1,17 @@
+# Saídas geradas pelo pipeline (não versionar)
+data/
+figures/
+
+# Artefatos do Julia
+*.jl.cov
+*.jl.mem
+/doc/
+/build/
+deps/deps.jl
+
+# Ambiente local (geralmente não versionado em projetos de pacote)
+/.julia/
+
+# SO / editores
+.DS_Store
+*.swp
