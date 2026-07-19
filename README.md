@@ -17,7 +17,7 @@
 
 ---
 
-## 🎯 Proposta
+## Proposta
 
 > **Antecipar picos de demanda no HMPA para que a gestão planeje equipes, leitos e
 > insumos com base em dados — não em adivinhação.**
@@ -36,7 +36,7 @@ demanda reais para ciência de dados aplicada à saúde pública.
 
 ---
 
-## 📊 Resultado esperado (exemplo do pipeline)
+## Resultado esperado (exemplo do pipeline)
 
 O gráfico abaixo é a saída direta do pipeline sobre um ano de dados simulados
 (2023). A linha laranja (previsão por média móvel) acompanha a tendência central;
@@ -50,7 +50,7 @@ separado no tempo e exibidas no terminal a cada execução.
 
 ---
 
-## ⚙️ Metodologia
+## Metodologia
 
 O problema é modelado como previsão univariada de séries temporais. O *baseline*
 atual estima o dia `t` pela média dos `w = 7` dias anteriores:
@@ -71,7 +71,7 @@ A divisão treino/teste é **temporal** (corte em 80% dos dias), evitando
 
 ---
 
-## ▶️ Como reproduzir
+## Como reproduzir
 
 Requer [Julia 1.9+](https://julialang.org/downloads/).
 
@@ -86,7 +86,7 @@ julia --project=. scripts/executar.jl                 # roda o pipeline completo
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Sazonalidade anual (chuvas / arboviroses) na geração sintética
 - [ ] Regressão (`GLM.jl`) com *features* de calendário + termos de Fourier
@@ -97,7 +97,7 @@ julia --project=. scripts/executar.jl                 # roda o pipeline completo
 
 ---
 
-## 📁 Estrutura
+## Estrutura
 
 ```
 previsao-hmpa/
