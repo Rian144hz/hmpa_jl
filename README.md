@@ -1,172 +1,112 @@
-# Previsão de Demanda de Atendimentos — HMPA (Paulo Afonso/BA)
+# Previsão de Demanda de Atendimentos — HMPA
 
-> **Projeto de ciência de dados em Julia** para prever, com antecedência, picos de
-> demanda de atendimento no Hospital Municipal de Paulo Afonso (HMPA), apoiando o
-> planejamento de equipes, leitos e insumos da unidade.
-
-![Status](https://img.shields.io/badge/status-prova%20de%20conceito-yellow)
-![Linguagem](https://img.shields.io/badge/linguagem-Julia%201.9%2B-blue)
-![Licença](https://img.shields.io/badge/licença-MIT-green)
-![Pipeline](https://img.shields.io/badge/pipeline-end--to--end-success)
+Projeto de séries temporais em Julia para prever picos de demanda no
+Hospital Municipal de Paulo Afonso (HMPA), dando suporte ao planejamento
+de equipes e leitos. TCC/bolsa de pesquisa no NCTI (Paulo Afonso/BA).
 
 ---
 
-## Resumo
+## O problema
 
-Este repositório implementa um **pipeline completo de previsão de séries
-temporais** de atendimentos hospitalares — da geração dos dados à avaliação do
-modelo e à visualização dos resultados. O objetivo é responder a uma pergunta
-concreta da gestão pública de saúde:
+Dado o histórico diário de atendimentos `y_1, y_2, ..., y_n`, queremos
+estimar `ŷ_{t}` para os próximos dias. No estágio atual usamos um
+*baseline* simples — **média móvel** de janela `w = 7`:
 
-> **É possível antecipar, com alguns dias de antecedência, quando o hospital
-> enfrentará um pico de demanda?** Se sim, isso permite planejar escalas,
-> estoque e leitos com muito mais eficiência.
+```
+ŷ_t = (1 / w) · Σ y_{t-i},   i = 1..w
+```
 
-O modelo atual é um *baseline* de referência (média móvel de 7 dias), já
-funcional de ponta a ponta e pronto para receber dados reais assim que houver
-acesso — via parceria com o **NCTI** (Núcleo de Pesquisa em Ciência, Tecnologia
-e Inovação) ou fontes públicas como o **DATASUS/SIH-SUS**.
+É o ponto de partida contra o qual modelos mais complexos serão medidos.
 
----
+## Pipeline
 
-## Contexto e Motivação
+O repo roda de ponta a ponta em 4 etapas (`scripts/executar.jl`):
 
-Paulo Afonso é o único município da Bahia integrante da **Rede Nacional de
-Cidades Inteligentes** do Ministério das Cidades, e conta hoje com o **NCTI**,
-fruto da parceria entre a Prefeitura e o IFBA. O HMPA, por sua vez, está em
-processo de modernização (novo tomógrafo, ultrassom e UTI em construção).
+| Etapa | Arquivo | O que faz |
+| --- | --- | --- |
+| 1. Dados | `src/SimulaDados.jl` | gera série sintética (~38/dia, queda no fim de semana, ruído gaussiano); semente fixa = reprodutível |
+| 2. Modelo | `src/Modelo.jl` | previsão por média móvel + métricas de erro |
+| 3. Avaliação | `src/Modelo.jl` | MAE e MAPE no conjunto de teste (últimos 20% dos dias) |
+| 4. Plot | `src/Visualizacao.jl` | gráfico real × previsto |
 
-Nesse cenário, ferramentas de apoio à decisão baseadas em dados deixam de ser
-luxo e passam a ser necessidade. Este projeto nasce como proposta de bolsa de
-pesquisa no NCTI, com potencial de evoluir para um painel de apoio à gestão
-municipal.
+### Núcleo do modelo (`src/Modelo.jl`)
 
----
+```julia
+function previsao_media_movel(valores::AbstractVector, janela::Int=7)
+    n = length(valores)
+    previsoes = zeros(Float64, n)
+    for i in 1:n
+        if i <= janela
+            previsoes[i] = mean(valores[1:(i-1)])
+        else
+            previsoes[i] = mean(valores[(i-janela):(i-1)])
+        end
+    end
+    return previsoes
+end
 
-## O que o projeto entrega (hoje)
+# MAE e MAPE
+mae  = mean(abs.(real .- previsto))
+mape = mean(abs.(real .- previsto) ./ real .* 100)
+```
 
-O pipeline cobre as quatro etapas essenciais de um projeto de previsão:
+A divisão em treino/teste é **temporal** (corte em `0.8 · n`), então não
+há *data leakage* — o modelo só "vê" o passado para prever o futuro.
 
-1. **Geração de dados sintéticos** (`src/SimulaDados.jl`)
-   Cria uma série temporal de atendimentos diários (~38/dia, com queda aos fins
-   de semana e ruído gaussiano). É reproduzível (semente fixa) e serve para
-   exercitar todo o fluxo. Dados reais de saúde são sensíveis e não públicos; a
-   simulação permite validar a metodologia antes do acesso aos dados oficiais.
+## Resultados
 
-2. **Modelo preditivo** (`src/Modelo.jl`)
-   Previsão por **média móvel de 7 dias**: cada dia é previsto pela média dos 7
-   dias anteriores. Este é o *baseline* contra o qual modelos mais sofisticados
-   serão comparados.
-
-3. **Avaliação rigorosa** (`src/Modelo.jl`)
-   Erro medido por **MAE** (Erro Absoluto Médio) e **MAPE** (Erro Percentual
-   Absoluto Médio) em um conjunto de teste separado no tempo (últimos 20% dos
-   dias), evitando *data leakage* (vazamento de dados).
-
-4. **Visualização** (`src/Visualizacao.jl`)
-   Gráfico comparando atendimentos reais vs. previstos ao longo do ano.
-
----
-
-## Resultados — um exemplo de previsão
-
-Abaixo, a saída do pipeline sobre um ano de dados simulados (2023). A linha
-laranja tracejada (previsão) acompanha a tendência central capturada pela média
-móvel, enquanto a linha azul (real) mostra a volatilidade diária do hospital —
-ilustrando exatamente o desafio que modelos mais avançados (roadmap abaixo)
-precisarão enfrentar.
+Um ano de dados simulados (2023), janela de 7 dias:
 
 ![HMPA — atendimentos reais vs. previstos](figures/previsao_hmpa.png)
 
-| Métrica | Descrição | Conjunto de teste |
-| --- | --- | --- |
-| **MAE** | Erro absoluto médio (atendimentos/dia) | impresso no terminal |
-| **MAPE** | Erro percentual absoluto médio (%) | impresso no terminal |
+A linha laranja (previsão) acompanha a tendência central, mas a linha azul
+(real) mostra a volatilidade diária que o baseline não captura — exatamente
+o que os próximos modelos têm que resolver.
 
-> As métricas exatas são calculadas e exibidas no terminal a cada execução do
-> pipeline (`scripts/executar.jl`).
+As métricas (MAE/MAPE) são impressas no terminal a cada execução.
 
----
+## Como rodar
 
-## Como reproduzir
-
-**Pré-requisitos:** [Julia 1.9+](https://julialang.org/downloads/) instalado.
+Requer [Julia 1.9+](https://julialang.org/downloads/).
 
 ```bash
 git clone <url-do-repositorio>
 cd previsao-hmpa
-
-# 1) instala as dependências do projeto (CSV, DataFrames, Plots, ...)
-julia --project=. -e 'using Pkg; Pkg.instantiate()'
-
-# 2) roda o pipeline completo (dados → previsão → avaliação → gráfico)
-julia --project=. scripts/executar.jl
+julia --project=. -e 'using Pkg; Pkg.instantiate()'   # baixa as deps (1ª vez)
+julia --project=. scripts/executar.jl                 # roda o pipeline
 ```
 
-Ao final, o pipeline produz:
+Saídas:
 
-- `data/atendimentos_hmpa.csv` — a série de dados gerada
-- `figures/previsao_hmpa.png` — o gráfico real vs. previsto
-- métricas de erro (MAE e MAPE) impressas no terminal
+- `data/atendimentos_hmpa.csv` — série gerada
+- `figures/previsao_hmpa.png` — gráfico real × previsto
+- MAE/MAPE no terminal
 
-> Na primeira execução, o `Pkg.instantiate()` baixa os pacotes e pode levar
-> alguns minutos.
-
----
-
-## Estrutura do repositório
+## Estrutura
 
 ```
 previsao-hmpa/
-├── Project.toml          # dependências do projeto Julia
-├── Manifest.toml         # versões travadas (gerado pelo Pkg)
+├── Project.toml          # deps do projeto
+├── Manifest.toml         # versões travadas
 ├── src/
-│   ├── SimulaDados.jl     # geração da série sintética
-│   ├── Modelo.jl          # média móvel + métricas de erro (MAE/MAPE)
-│   └── Visualizacao.jl    # gráfico real vs. previsto
+│   ├── SimulaDados.jl     # série sintética
+│   ├── Modelo.jl          # média móvel + MAE/MAPE
+│   └── Visualizacao.jl    # plot
 ├── scripts/
-│   └── executar.jl        # pipeline completo (ponto de entrada)
-├── data/                  # dados gerados (não versionado)
-└── figures/               # gráficos gerados (não versionado)
+│   └── executar.jl        # pipeline (entrypoint)
+├── data/                  # gerado (não versionado)
+└── figures/               # gerado (PNG versionado p/ o README)
 ```
 
----
+## Próximos passos
 
-## Roadmap — próximos passos
-
-Itens ainda **não** implementados; representam o caminho de maturação do
-*baseline* atual até a solução descrita na motivação:
-
-- [ ] **Dados realistas**: sazonalidade anual (período de chuvas / arboviroses,
-      comum no Nordeste) e surtos esporádicos na geração sintética.
-- [ ] **Modelo de regressão**: substituir a média móvel por regressão
-      (`GLM.jl`) com *features* de calendário — dia da semana, tendência e
-      sazonalidade via termos de Fourier.
-- [ ] **Dados reais**: trocar os simulados por dados reais (DATASUS/SIH-SUS ou
-      internos do HMPA, via parceria com o NCTI).
-- [ ] **Modelos não-lineares**: árvores de decisão (`MLJ.jl`) ou redes neurais
-      simples (`Flux.jl`), comparando com o *baseline* linear.
-- [ ] **Variáveis externas**: temperatura, precipitação e calendário de
-      feriados/eventos da cidade.
-- [ ] **Painel interativo**: empacotar como *dashboard* (`Genie.jl`) para uso
-      pela gestão municipal.
+- [ ] Sazonalidade anual (chuvas/arboviroses) na geração sintética
+- [ ] Regressão (`GLM.jl`) com *features* de calendário + termos de Fourier
+- [ ] Dados reais (DATASUS/SIH-SUS ou HMPA via NCTI)
+- [ ] Modelos não-lineares: árvores (`MLJ.jl`) / redes (`Flux.jl`)
+- [ ] Variáveis externas: temperatura, chuva, feriados
+- [ ] Dashboard interativo (`Genie.jl`)
 
 ---
 
-## Stack e metodologia
-
-- **Linguagem:** Julia 1.9+
-- **Ecossistema:** `DataFrames` (manipulação), `CSV` (I/O), `Plots` (visualização)
-- **Abordagem:** séries temporais, divisão temporal de treino/teste, métricas de
-  erro padronizadas (MAE/MAPE)
-- **Reprodutibilidade:** semente fixa na geração de dados; manifesto de
-  dependências versionado
-
----
-
-## Autor
-
-Projeto desenvolvido como proposta de **bolsa de pesquisa no NCTI** (Núcleo de
-Pesquisa em Ciência, Tecnologia e Inovação) — Paulo Afonso/BA.
-
-Licença: MIT.
+Autor: projeto de bolsa de pesquisa no NCTI — Paulo Afonso/BA. Licença MIT.
