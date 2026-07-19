@@ -1,6 +1,3 @@
-<p align="center">
-  <img src="figures/previsao_hmpa.png" alt="HMPA — atendimentos reais vs. previstos" width="720">
-</p>
 
 <h1 align="center">Previsão de Demanda de Atendimentos — HMPA</h1>
 
@@ -91,8 +88,8 @@ A divisão treino/teste é **temporal** (corte em 80% dos dias), evitando
 Requer [Julia 1.9+](https://julialang.org/downloads/).
 
 ```bash
-git clone <url-do-repositorio>
-cd previsao-hmpa
+git clone https://github.com/Rian144hz/hmpa_jl.git
+cd hmpa_jl
 julia --project=. -e 'using Pkg; Pkg.instantiate()'   # instala dependências (1ª vez)
 julia --project=. scripts/executar.jl                 # roda o pipeline completo
 ```
@@ -115,18 +112,21 @@ julia --project=. scripts/executar.jl                 # roda o pipeline completo
 ## Estrutura
 
 ```
-previsao-hmpa/
-├── Project.toml          # dependências do projeto
-├── Manifest.toml         # versões travadas
+hmpa_jl/
+├── Project.toml           # dependências do projeto
 ├── src/
 │   ├── SimulaDados.jl     # geração da série sintética
 │   ├── Modelo.jl          # média móvel + MAE/MAPE
 │   └── Visualizacao.jl    # gráfico
 ├── scripts/
 │   └── executar.jl        # pipeline (ponto de entrada)
-├── data/                  # gerado (não versionado)
-└── figures/               # gráficos (PNG versionado p/ o README)
+├── data/                  # CSV gerado pelo pipeline (versionado como evidência)
+└── figures/                # gráfico gerado pelo pipeline (PNG versionado p/ o README)
 ```
+
+> `Manifest.toml` não é versionado (está no `.gitignore`): ele trava as
+> versões exatas de cada dependência e é próprio de cada máquina. Quem
+> clonar o repositório gera o seu com `Pkg.instantiate()`.
 
 ---
 
