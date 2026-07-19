@@ -1,6 +1,8 @@
-# Saídas geradas pelo pipeline (não versionar)
-data/
-figures/
+# Saídas geradas pelo pipeline (não versionar o conteúdo das pastas)
+data/*
+figures/*
+# ...exceto a figura principal exibida no README (versionada de propósito)
+!figures/previsao_hmpa.png
 
 # Artefatos do Julia
 *.jl.cov
