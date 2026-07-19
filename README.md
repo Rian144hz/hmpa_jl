@@ -28,6 +28,12 @@ Afonso. A entrega atual é um **pipeline funcional de ponta a ponta** (geração
 dados → modelo → avaliação → visualização), servindo como prova de conceito e
 base reprodutível para a futura adoção de dados reais do hospital.
 
+**Objetivos**
+- Construir um modelo que sinalize, com antecedência, dias de alta demanda.
+- Reduzir o improviso no dimensionamento de equipes e leitos.
+- Estabelecer uma linha de base (*baseline*) mensurável contra a qual modelos
+  mais avançados serão comparados.
+
 **Por que importa:** Paulo Afonso é o único município da Bahia na *Rede Nacional
 de Cidades Inteligentes* (Ministério das Cidades) e abriga o **NCTI** (Núcleo de
 Pesquisa em Ciência, Tecnologia e Inovação), parceria Prefeitura–IFBA. O HMPA
@@ -36,17 +42,26 @@ demanda reais para ciência de dados aplicada à saúde pública.
 
 ---
 
-## Resultado esperado (exemplo do pipeline)
+## Resultados
 
 O gráfico abaixo é a saída direta do pipeline sobre um ano de dados simulados
-(2023). A linha laranja (previsão por média móvel) acompanha a tendência central;
-a azul (real) revela a volatilidade diária que modelos mais sofisticados deverão
-capturar.
+(2023). A linha laranja (previsão por média móvel de 7 dias) acompanha a
+tendência central; a azul (real) revela a volatilidade diária que modelos mais
+sofisticados deverão capturar.
 
 ![HMPA — atendimentos reais vs. previstos](figures/previsao_hmpa.png)
 
-As métricas de erro (**MAE** e **MAPE**) são calculadas em conjunto de teste
-separado no tempo e exibidas no terminal a cada execução.
+Erro do *baseline* avaliado em conjunto de teste separado no tempo
+(últimos 20% dos dias, ~73 dias), sem vazamento de dados:
+
+| Métrica | Valor | Significado |
+| --- | --- | --- |
+| **MAE** | 3,71 atendimentos/dia | erro absoluto médio — desvio típico da previsão |
+| **MAPE** | 11,03% | erro percentual médio em relação à demanda real |
+
+Ou seja, o modelo de referência erra, em média, cerca de **3 a 4 atendimentos
+por dia** — um ponto de partida sólido e quantificado para as próximas
+iterações (ver Roadmap).
 
 ---
 
