@@ -1,112 +1,120 @@
-# Previsão de Demanda de Atendimentos — HMPA
+<p align="center">
+  <img src="figures/previsao_hmpa.png" alt="HMPA — atendimentos reais vs. previstos" width="720">
+</p>
 
-Projeto de séries temporais em Julia para prever picos de demanda no
-Hospital Municipal de Paulo Afonso (HMPA), dando suporte ao planejamento
-de equipes e leitos. TCC/bolsa de pesquisa no NCTI (Paulo Afonso/BA).
+<h1 align="center">Previsão de Demanda de Atendimentos — HMPA</h1>
+
+<p align="center">
+  <b>Séries temporais aplicadas à gestão hospitalar pública</b><br>
+  Hospital Municipal de Paulo Afonso (BA) · Projeto de Iniciação Científica / Bolsa de Pesquisa — NCTI
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/linguagem-Julia%201.9%2B-blue" alt="Julia">
+  <img src="https://img.shields.io/badge/status-pipeline%20funcional-brightgreen" alt="Status">
+  <img src="https://img.shields.io/badge/licença-MIT-green" alt="Licença">
+</p>
 
 ---
 
-## O problema
+## 🎯 Proposta
 
-Dado o histórico diário de atendimentos `y_1, y_2, ..., y_n`, queremos
-estimar `ŷ_{t}` para os próximos dias. No estágio atual usamos um
-*baseline* simples — **média móvel** de janela `w = 7`:
+> **Antecipar picos de demanda no HMPA para que a gestão planeje equipes, leitos e
+> insumos com base em dados — não em adivinhação.**
 
-```
-ŷ_t = (1 / w) · Σ y_{t-i},   i = 1..w
-```
+Este projeto propõe o desenvolvimento de um sistema de **previsão de séries
+temporais** para o volume diário de atendimentos do Hospital Municipal de Paulo
+Afonso. A entrega atual é um **pipeline funcional de ponta a ponta** (geração de
+dados → modelo → avaliação → visualização), servindo como prova de conceito e
+base reprodutível para a futura adoção de dados reais do hospital.
 
-É o ponto de partida contra o qual modelos mais complexos serão medidos.
+**Por que importa:** Paulo Afonso é o único município da Bahia na *Rede Nacional
+de Cidades Inteligentes* (Ministério das Cidades) e abriga o **NCTI** (Núcleo de
+Pesquisa em Ciência, Tecnologia e Inovação), parceria Prefeitura–IFBA. O HMPA
+passa por modernização (tomógrafo, ultrassom, UTI). Há, portanto, ambiente e
+demanda reais para ciência de dados aplicada à saúde pública.
 
-## Pipeline
+---
 
-O repo roda de ponta a ponta em 4 etapas (`scripts/executar.jl`):
+## 📊 Resultado esperado (exemplo do pipeline)
 
-| Etapa | Arquivo | O que faz |
-| --- | --- | --- |
-| 1. Dados | `src/SimulaDados.jl` | gera série sintética (~38/dia, queda no fim de semana, ruído gaussiano); semente fixa = reprodutível |
-| 2. Modelo | `src/Modelo.jl` | previsão por média móvel + métricas de erro |
-| 3. Avaliação | `src/Modelo.jl` | MAE e MAPE no conjunto de teste (últimos 20% dos dias) |
-| 4. Plot | `src/Visualizacao.jl` | gráfico real × previsto |
-
-### Núcleo do modelo (`src/Modelo.jl`)
-
-```julia
-function previsao_media_movel(valores::AbstractVector, janela::Int=7)
-    n = length(valores)
-    previsoes = zeros(Float64, n)
-    for i in 1:n
-        if i <= janela
-            previsoes[i] = mean(valores[1:(i-1)])
-        else
-            previsoes[i] = mean(valores[(i-janela):(i-1)])
-        end
-    end
-    return previsoes
-end
-
-# MAE e MAPE
-mae  = mean(abs.(real .- previsto))
-mape = mean(abs.(real .- previsto) ./ real .* 100)
-```
-
-A divisão em treino/teste é **temporal** (corte em `0.8 · n`), então não
-há *data leakage* — o modelo só "vê" o passado para prever o futuro.
-
-## Resultados
-
-Um ano de dados simulados (2023), janela de 7 dias:
+O gráfico abaixo é a saída direta do pipeline sobre um ano de dados simulados
+(2023). A linha laranja (previsão por média móvel) acompanha a tendência central;
+a azul (real) revela a volatilidade diária que modelos mais sofisticados deverão
+capturar.
 
 ![HMPA — atendimentos reais vs. previstos](figures/previsao_hmpa.png)
 
-A linha laranja (previsão) acompanha a tendência central, mas a linha azul
-(real) mostra a volatilidade diária que o baseline não captura — exatamente
-o que os próximos modelos têm que resolver.
+As métricas de erro (**MAE** e **MAPE**) são calculadas em conjunto de teste
+separado no tempo e exibidas no terminal a cada execução.
 
-As métricas (MAE/MAPE) são impressas no terminal a cada execução.
+---
 
-## Como rodar
+## ⚙️ Metodologia
+
+O problema é modelado como previsão univariada de séries temporais. O *baseline*
+atual estima o dia `t` pela média dos `w = 7` dias anteriores:
+
+```
+ŷ_t = (1/w) · Σ y_{t-i},   i = 1..w
+```
+
+| Etapa | Arquivo | Descrição |
+| --- | --- | --- |
+| Dados | `src/SimulaDados.jl` | série sintética (~38/dia, queda no fim de semana, ruído gaussiano); semente fixa = reprodutível |
+| Modelo | `src/Modelo.jl` | previsão por média móvel de 7 dias |
+| Avaliação | `src/Modelo.jl` | MAE e MAPE no teste (últimos 20% dos dias) |
+| Visualização | `src/Visualizacao.jl` | gráfico real × previsto |
+
+A divisão treino/teste é **temporal** (corte em 80% dos dias), evitando
+*data leakage*: o modelo só utiliza o passado para prever o futuro.
+
+---
+
+## ▶️ Como reproduzir
 
 Requer [Julia 1.9+](https://julialang.org/downloads/).
 
 ```bash
 git clone <url-do-repositorio>
 cd previsao-hmpa
-julia --project=. -e 'using Pkg; Pkg.instantiate()'   # baixa as deps (1ª vez)
-julia --project=. scripts/executar.jl                 # roda o pipeline
+julia --project=. -e 'using Pkg; Pkg.instantiate()'   # instala dependências (1ª vez)
+julia --project=. scripts/executar.jl                 # roda o pipeline completo
 ```
 
-Saídas:
-
-- `data/atendimentos_hmpa.csv` — série gerada
-- `figures/previsao_hmpa.png` — gráfico real × previsto
-- MAE/MAPE no terminal
-
-## Estrutura
-
-```
-previsao-hmpa/
-├── Project.toml          # deps do projeto
-├── Manifest.toml         # versões travadas
-├── src/
-│   ├── SimulaDados.jl     # série sintética
-│   ├── Modelo.jl          # média móvel + MAE/MAPE
-│   └── Visualizacao.jl    # plot
-├── scripts/
-│   └── executar.jl        # pipeline (entrypoint)
-├── data/                  # gerado (não versionado)
-└── figures/               # gerado (PNG versionado p/ o README)
-```
-
-## Próximos passos
-
-- [ ] Sazonalidade anual (chuvas/arboviroses) na geração sintética
-- [ ] Regressão (`GLM.jl`) com *features* de calendário + termos de Fourier
-- [ ] Dados reais (DATASUS/SIH-SUS ou HMPA via NCTI)
-- [ ] Modelos não-lineares: árvores (`MLJ.jl`) / redes (`Flux.jl`)
-- [ ] Variáveis externas: temperatura, chuva, feriados
-- [ ] Dashboard interativo (`Genie.jl`)
+**Saídas:** `data/atendimentos_hmpa.csv` · `figures/previsao_hmpa.png` · MAE/MAPE no terminal.
 
 ---
 
-Autor: projeto de bolsa de pesquisa no NCTI — Paulo Afonso/BA. Licença MIT.
+## 🗺️ Roadmap
+
+- [ ] Sazonalidade anual (chuvas / arboviroses) na geração sintética
+- [ ] Regressão (`GLM.jl`) com *features* de calendário + termos de Fourier
+- [ ] **Dados reais** (DATASUS/SIH-SUS ou HMPA via parceria com o NCTI)
+- [ ] Modelos não-lineares: árvores (`MLJ.jl`) / redes (`Flux.jl`)
+- [ ] Variáveis externas: temperatura, chuva, feriados
+- [ ] Dashboard interativo (`Genie.jl`) para a gestão municipal
+
+---
+
+## 📁 Estrutura
+
+```
+previsao-hmpa/
+├── Project.toml          # dependências do projeto
+├── Manifest.toml         # versões travadas
+├── src/
+│   ├── SimulaDados.jl     # geração da série sintética
+│   ├── Modelo.jl          # média móvel + MAE/MAPE
+│   └── Visualizacao.jl    # gráfico
+├── scripts/
+│   └── executar.jl        # pipeline (ponto de entrada)
+├── data/                  # gerado (não versionado)
+└── figures/               # gráficos (PNG versionado p/ o README)
+```
+
+---
+
+<p align="center">
+  Projeto de bolsa de pesquisa no <b>NCTI</b> — Paulo Afonso/BA &nbsp;·&nbsp; Licença MIT
+</p>
