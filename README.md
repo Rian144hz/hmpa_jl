@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="figures/previsao_hmpa.png" alt="HMPA — atendimentos reais vs. previstos" width="720">
+</p>
 
 <h1 align="center">Previsão de Demanda de Atendimentos — HMPA</h1>
 
@@ -81,6 +84,13 @@ atual estima o dia `t` pela média dos `w = 7` dias anteriores:
 A divisão treino/teste é **temporal** (corte em 80% dos dias), evitando
 *data leakage*: o modelo só utiliza o passado para prever o futuro.
 
+> **Em teste (fora do pipeline principal):** um `DecisionTreeRegressor`
+> (`MLJ.jl`) já foi validado com dados sintéticos isolados, usando dia da
+> semana e índice de tendência como features. Escolhido em vez de rede
+> neural por ser mais adequado a um dataset tabular deste porte, e mais
+> interpretável para explicar cada previsão. Próximo passo: integrar ao
+> pipeline e comparar MAE/MAPE com o baseline de média móvel.
+
 ---
 
 ## Como reproduzir
@@ -100,10 +110,13 @@ julia --project=. scripts/executar.jl                 # roda o pipeline completo
 
 ## Roadmap
 
-- [ ] Sazonalidade anual (chuvas / arboviroses) na geração sintética
-- [ ] Regressão (`GLM.jl`) com *features* de calendário + termos de Fourier
-- [ ] **Dados reais** (DATASUS/SIH-SUS ou HMPA via parceria com o NCTI)
-- [ ] Modelos não-lineares: árvores (`MLJ.jl`) / redes (`Flux.jl`)
+- [ ] Sazonalidade anual (período de chuvas/arboviroses) na geração sintética
+- [ ] **Árvore de decisão** (`DecisionTreeRegressor`, via `MLJ.jl`) com features de
+      calendário (dia da semana, índice de tendência) — já testada isoladamente,
+      próximo passo é integrar ao pipeline e comparar o MAE/MAPE com o baseline
+      de média móvel
+- [ ] Dados reais (DATASUS/SIH-SUS ou HMPA via parceria com o NCTI)
+- [ ] Regressão (`GLM.jl`) com features de calendário + termos de Fourier
 - [ ] Variáveis externas: temperatura, chuva, feriados
 - [ ] Dashboard interativo (`Genie.jl`) para a gestão municipal
 
