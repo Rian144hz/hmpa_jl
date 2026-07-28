@@ -1,36 +1,34 @@
 module SimulaDados
-
 using Dates
 using Random
 using DataFrames
 
 export gerar_serie_atendimentos
 
-function gerar_serie_atendimentos(; data_inicio::Date=Date(2023, 1, 1),
-                                     n_dias::Int=365,
-                                     seed::Int=42)
-    rng = MersenneTwister(seed)
-    base = 38.0
+    function gerar_serie_atendimentos(;data_inicio::Date = Date(2023, 1, 1),
+                                                    numero_dias:: Int = 365,
+                                                    seed:: Int = 42)
+        numeros_aleatorios = MersenneTwister(seed);
+        base = 38.0;
 
-    datas = Date[]
-    atendimentos = Float64[]
+        datas = Date[];
+        atendimentos = Int64[];
 
-    for i in 0:(n_dias - 1)
-        nova_data = data_inicio + Day(i)
-        push!(datas, nova_data)
+        for i in 0:(numero_dias - 1) 
+            nova_data = data_inicio +day(i);
+            push!(datas,nova_data);
 
-        dow = dayofweek(nova_data)
+            valor = base;
 
-        valor = base
-        if dow in (6, 7)
-            valor = valor - 8.0
+            dia_da_semana = dayofweek(nova_data);
+            
+            for dia_da_semana in (6,7) 
+                valor = valor - 8.0;
+            end
+            valor = valor + randn(numeros_aleatorios) * 3.0;
+
+            push!(atendimentos,valor);
         end
-        valor = valor + randn(rng) * 3.0
-
-        push!(atendimentos, valor)
+        return DataFrame =(data = datas, atendimentos = atendimentos);
     end
-
-    return DataFrame(data = datas, atendimentos = atendimentos)
-end
-
-end # module
+end 
