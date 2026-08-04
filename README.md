@@ -1,148 +1,62 @@
-<p align="center">
-  <img src="figures/previsao_hmpa.png" alt="HMPA — atendimentos reais vs. previstos" width="720">
-</p>
-
-<h1 align="center">Previsão de Demanda de Atendimentos — HMPA</h1>
-
-<p align="center">
-  <b>Séries temporais aplicadas à gestão hospitalar pública</b><br>
-  Hospital Municipal de Paulo Afonso (BA) · Projeto de Iniciação Científica / Bolsa de Pesquisa — NCTI
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/linguagem-Julia%201.9%2B-blue" alt="Julia">
-  <img src="https://img.shields.io/badge/status-pipeline%20funcional-brightgreen" alt="Status">
-  <img src="https://img.shields.io/badge/licença-MIT-green" alt="Licença">
-</p>
+# Previsão de Demanda de Atendimentos — HMPA
+### Séries temporais aplicadas à gestão hospitalar pública
+**Hospital Municipal de Paulo Afonso (BA)** · Projeto de Iniciação Científica orientado pelo Prof. Fabiano Vaz (IFBA) · parceria Prefeitura–IFBA via NCTI
 
 ---
 
 ## Proposta
+Antecipar picos de demanda no HMPA para que a gestão planeje equipes, leitos e insumos com base em dados — não em adivinhação.
 
-> **Antecipar picos de demanda no HMPA para que a gestão planeje equipes, leitos e
-> insumos com base em dados — não em adivinhação.**
+Este projeto desenvolve um sistema de previsão de séries temporais para o volume de atendimentos do Hospital Municipal de Paulo Afonso. A entrega é um pipeline funcional de ponta a ponta (obtenção de dados → modelo → avaliação → visualização), reprodutível e documentado, servindo como base para a adoção de dados reais do hospital.
 
-Este projeto propõe o desenvolvimento de um sistema de **previsão de séries
-temporais** para o volume diário de atendimentos do Hospital Municipal de Paulo
-Afonso. A entrega atual é um **pipeline funcional de ponta a ponta** (geração de
-dados → modelo → avaliação → visualização), servindo como prova de conceito e
-base reprodutível para a futura adoção de dados reais do hospital.
-
-**Objetivos**
+### Objetivos
 - Construir um modelo que sinalize, com antecedência, dias de alta demanda.
 - Reduzir o improviso no dimensionamento de equipes e leitos.
-- Estabelecer uma linha de base (*baseline*) mensurável contra a qual modelos
-  mais avançados serão comparados.
+- Estabelecer uma linha de base (baseline) mensurável contra a qual modelos mais avançados serão comparados.
 
-**Por que importa:** Paulo Afonso é o único município da Bahia na *Rede Nacional
-de Cidades Inteligentes* (Ministério das Cidades) e abriga o **NCTI** (Núcleo de
-Pesquisa em Ciência, Tecnologia e Inovação), parceria Prefeitura–IFBA. O HMPA
-passa por modernização (tomógrafo, ultrassom, UTI). Há, portanto, ambiente e
-demanda reais para ciência de dados aplicada à saúde pública.
+### Por que importa
+Paulo Afonso é o único município da Bahia na Rede Nacional de Cidades Inteligentes (Ministério das Cidades) e abriga o NCTI (Núcleo de Pesquisa em Ciência, Tecnologia e Inovação), parceria Prefeitura–IFBA. O HMPA passa por modernização (tomógrafo, ultrassom, UTI). Há, portanto, ambiente e demanda reais para ciência de dados aplicada à saúde pública.
 
 ---
 
-## Resultados
+## Diretrizes definidas com o orientador (reunião 03/08)
+Na reunião de orientação, o Prof. Fabiano Vaz definiu os pontos centrais do trabalho:
 
-O gráfico abaixo é a saída direta do pipeline sobre um ano de dados simulados
-(2023). A linha laranja (previsão por média móvel de 7 dias) acompanha a
-tendência central; a azul (real) revela a volatilidade diária que modelos mais
-sofisticados deverão capturar.
+1. **Usar dados reais**, não sintéticos — a partir de fontes públicas (DATASUS/SIA-SUS) e, futuramente, do HMPA via parceria NCTI/Prefeitura.
+2. **Ataque semanal, não anual** — investigar padrões como "toda segunda-feira há X atendimentos", capturando sazonalidade de curto prazo em vez de apenas totais anuais.
+3. **Potencial de pesquisa científica** — o trabalho pode evoluir para artigo/poster, dada a raridade de estudos locais de previsão de demanda ambulatorial no interior da Bahia.
 
-![HMPA — atendimentos reais vs. previstos](figures/previsao_hmpa.png)
-
-Erro do *baseline* avaliado em conjunto de teste separado no tempo
-(últimos 20% dos dias, ~73 dias), sem vazamento de dados:
-
-| Métrica | Valor | Significado |
-| --- | --- | --- |
-| **MAE** | 3,71 atendimentos/dia | erro absoluto médio — desvio típico da previsão |
-| **MAPE** | 11,03% | erro percentual médio em relação à demanda real |
-
-Ou seja, o modelo de referência erra, em média, cerca de **3 a 4 atendimentos
-por dia** — um ponto de partida sólido e quantificado para as próximas
-iterações (ver Roadmap).
+> Natureza da participação: voluntariado (confirmado com o orientador), com o objetivo de tirar o projeto do papel e gerar conhecimento aplicado.
 
 ---
 
-## Metodologia
+## Dados reais já obtidos (DATASUS / SIA-SUS)
+O pipeline já consome dados públicos do Sistema de Informações Ambulatoriais do SUS, por município da Bahia.
 
-O problema é modelado como previsão univariada de séries temporais. O *baseline*
-atual estima o dia `t` pela média dos `w = 7` dias anteriores:
+### Paulo Afonso (cód. IBGE 292400) — foco do projeto
+| Ano | Atendimentos (Qtd. apresentada) |
+|-----|-------------------------------|
+| 2019* | 57.605 |
+| 2020 | 1.428.143 |
+| 2021 | 1.885.407 |
+| 2022 | 2.569.199 |
+| 2023 | 1.724.598 |
+| 2024 | 2.144.396 |
+| 2025 | 2.476.301 |
+| 2026** | 178.400 |
 
-```
-ŷ_t = (1/w) · Σ y_{t-i},   i = 1..w
-```
+*\* 2019 e \** 2026 são períodos parciais (o SUS atualiza com defasagem; notas do DATASUS indicam "últimos seis meses, sujeitos a atualização").
 
-| Etapa | Arquivo | Descrição |
-| --- | --- | --- |
-| Dados | `src/SimulaDados.jl` | série sintética (~38/dia, queda no fim de semana, ruído gaussiano); semente fixa = reprodutível |
-| Modelo | `src/Modelo.jl` | previsão por média móvel de 7 dias |
-| Avaliação | `src/Modelo.jl` | MAE e MAPE no teste (últimos 20% dos dias) |
-| Visualização | `src/Visualizacao.jl` | gráfico real × previsto |
+**Resumo (média 2020–2025):**
+- ~2.038.007 atendimentos/ano
+- ~169.834 atendimentos/mês
+- **~5.584 atendimentos/dia**
 
-A divisão treino/teste é **temporal** (corte em 80% dos dias), evitando
-*data leakage*: o modelo só utiliza o passado para prever o futuro.
-
-> **Em teste (fora do pipeline principal):** um `DecisionTreeRegressor`
-> (`MLJ.jl`) já foi validado com dados sintéticos isolados, usando dia da
-> semana e índice de tendência como features. Escolhido em vez de rede
-> neural por ser mais adequado a um dataset tabular deste porte, e mais
-> interpretável para explicar cada previsão. Próximo passo: integrar ao
-> pipeline e comparar MAE/MAPE com o baseline de média móvel.
+Fonte: Ministério da Saúde — SIA/SUS. Dados de livre acesso (Open Data governamental), consultados via TABNET.
 
 ---
 
-## Como reproduzir
+## Pipeline (Julia)
+O projeto usa Julia (ambiente hmpa_jl) para todo o processamento.
 
-Requer [Julia 1.9+](https://julialang.org/downloads/).
-
-```bash
-git clone https://github.com/Rian144hz/hmpa_jl.git
-cd hmpa_jl
-julia --project=. -e 'using Pkg; Pkg.instantiate()'   # instala dependências (1ª vez)
-julia --project=. scripts/executar.jl                 # roda o pipeline completo
-```
-
-**Saídas:** `data/atendimentos_hmpa.csv` · `figures/previsao_hmpa.png` · MAE/MAPE no terminal.
-
----
-
-## Roadmap
-
-- [ ] Sazonalidade anual (período de chuvas/arboviroses) na geração sintética
-- [ ] **Árvore de decisão** (`DecisionTreeRegressor`, via `MLJ.jl`) com features de
-      calendário (dia da semana, índice de tendência) — já testada isoladamente,
-      próximo passo é integrar ao pipeline e comparar o MAE/MAPE com o baseline
-      de média móvel
-- [ ] Dados reais (DATASUS/SIH-SUS ou HMPA via parceria com o NCTI)
-- [ ] Regressão (`GLM.jl`) com features de calendário + termos de Fourier
-- [ ] Variáveis externas: temperatura, chuva, feriados
-- [ ] Dashboard interativo (`Genie.jl`) para a gestão municipal
-
----
-
-## Estrutura
-
-```
-hmpa_jl/
-├── Project.toml           # dependências do projeto
-├── src/
-│   ├── SimulaDados.jl     # geração da série sintética
-│   ├── Modelo.jl          # média móvel + MAE/MAPE
-│   └── Visualizacao.jl    # gráfico
-├── scripts/
-│   └── executar.jl        # pipeline (ponto de entrada)
-├── data/                  # CSV gerado pelo pipeline (versionado como evidência)
-└── figures/                # gráfico gerado pelo pipeline (PNG versionado p/ o README)
-```
-
-> `Manifest.toml` não é versionado (está no `.gitignore`): ele trava as
-> versões exatas de cada dependência e é próprio de cada máquina. Quem
-> clonar o repositório gera o seu com `Pkg.instantiate()`.
-
----
-
-<p align="center">
-  Projeto de bolsa de pesquisa no <b>NCTI</b> — Paulo Afonso/BA &nbsp;·&nbsp; Licença MIT
-</p>
+### Como reproduzir (exemplo com Paulo Afonso)
