@@ -46,19 +46,22 @@ O CSV baixado tem cabeçalho em 4 linhas e dados na 5ª/6ª. O `hmpa_jl` faz o p
 - **TABNET (Produção Ambulatorial SIA/BA):** http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sia/cnv/qaba.def
 - **Página oficial DATASUS:** https://datasus.saude.gov.br/acesso-a-informacao/producao-ambulatorial-sia-sus/
 - **CSV de Paulo Afonso (neste repo):** `data/pauloafonso.csv`
+- **🔗 LINK REAL DO CSV (download direto):** https://raw.githubusercontent.com/Rian144hz/hmpa_jl/main/data/pauloafonso.csv
 
 ### Série obtida — Paulo Afonso (Qtd. apresentada)
 
-| Ano | Atendimentos |
-|-----|-------------|
-| 2019* | 57.605 |
-| 2020 | 1.428.143 |
-| 2021 | 1.885.407 |
-| 2022 | 2.569.199 |
-| 2023 | 1.724.598 |
-| 2024 | 2.144.396 |
-| 2025 | 2.476.301 |
-| 2026** | 178.400 |
+> ⚠️ **2026 é dado PARCIAL** (até Mai/2026, conforme nota do DATASUS: *"dados referentes aos últimos seis meses, sujeitos a atualização"*). Por isso **não entra na média anual**.
+
+| Ano | Atendimentos | Status |
+|-----|-------------|--------|
+| 2019* | 57.605 | parcial |
+| 2020 | 1.428.143 | completo |
+| 2021 | 1.885.407 | completo |
+| 2022 | 2.569.199 | completo |
+| 2023 | 1.724.598 | completo |
+| 2024 | 2.144.396 | completo |
+| 2025 | 2.476.301 | completo |
+| 2026** | 178.400 | **PARCIAL** |
 
 *\* 2019 e \** 2026 são parciais (o SUS atualiza com defasagem — notas do DATASUS: *"dados referentes aos últimos seis meses, sujeitos a atualização"*).
 
