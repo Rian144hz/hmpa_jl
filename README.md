@@ -174,4 +174,3 @@ hmpa_jl/
 
 ---
 
-*IFBA Campus Paulo Afonso · Orientador: Prof. Fabiano Vaz · 2026*
