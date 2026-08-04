@@ -1,8 +1,9 @@
 # Saídas geradas pelo pipeline (não versionar o conteúdo das pastas)
 data/*
 figures/*
-# ...exceto a figura principal exibida no README (versionada de propósito)
+# ...exceto as figuras principais exibidas no README (versionadas de propósito)
 !figures/previsao_hmpa.png
+!figures/pauloafonso_atendimentos.png
 
 # Artefatos do Julia
 *.jl.cov
