@@ -46,7 +46,7 @@ O CSV baixado tem cabeçalho em 4 linhas e dados na 5ª/6ª. O `hmpa_jl` faz o p
 - **TABNET (Produção Ambulatorial SIA/BA):** http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sia/cnv/qaba.def
 - **Página oficial DATASUS:** https://datasus.saude.gov.br/acesso-a-informacao/producao-ambulatorial-sia-sus/
 - **CSV de Paulo Afonso (neste repo):** `data/pauloafonso.csv`
-- **🔗 LINK REAL DO CSV (download direto):** https://raw.githubusercontent.com/Rian144hz/hmpa_jl/main/data/pauloafonso.csv
+- **🔗 LINK REAL DO CSV (fonte TABNET/DATASUS):** http://tabnet.datasus.gov.br/cgi/tabcgi.exe?sia/cnv/qaba.def
 
 ### Série obtida — Paulo Afonso (Qtd. apresentada)
 
